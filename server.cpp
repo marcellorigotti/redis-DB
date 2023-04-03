@@ -52,7 +52,7 @@ static int32_t one_request(int connfd) {
     
     //4 bytes header
     int32_t err = read_full(connfd, rbuf, 4);
-    if(err){ //TODO fix check to see if it is EOF or read error, currently never going into the first if (EOF)
+    if(err){ 
         if(err == -1)
             msg("EOF");
         else
