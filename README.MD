@@ -11,5 +11,5 @@ To compile and run:
 - cd ./build
 - cmake ../
 - cmake -- build .
-- ./server 
+- ./server OR ./serverEventLoop
 - ./client

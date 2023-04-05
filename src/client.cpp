@@ -19,7 +19,9 @@ static void die(const char *msg) {
 }
 static int32_t read_full(int fd, char* buf, size_t n){
     while(n > 0){
+        std::cout << n << std::endl;
         size_t len = read(fd, buf, n);
+        std::cout << len << std::endl;
         if(len <= 0)
             return -1; //error, unexpected EOF
         assert(len <= n);
