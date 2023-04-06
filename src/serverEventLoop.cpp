@@ -15,7 +15,8 @@
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
-
+//temporary storage 
+static std::unordered_map<std::string, std::string> database;
 
 static void msg(const char *msg) {
     std::cout << msg << std::endl;
@@ -123,6 +124,26 @@ static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<s
 
     return 0;
 }
+static Rescode get(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+    if(!database.contains(cmd[1]))
+        return Rescode::RES_NX;
+    std::string res_val = database[cmd[1]];
+    assert(res_val.size() <= max_msg_size);
+    memcpy(&wbuf, res_val.data(), res_val.size());
+    *wlen = res_val.size();
+
+    return Rescode::RES_OK;
+}
+static Rescode set(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+    database[cmd[1]] = cmd[2];
+    
+    return Rescode::RES_OK;
+}
+static Rescode del(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+    database.erase(cmd[1]);
+    
+    return Rescode::RES_OK;
+}
 //computes the request parsing the commands and elaborating them
 static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code, uint8_t* wbuf, uint32_t* wlen){
     std::vector<std::string> cmd;
@@ -132,11 +153,11 @@ static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code
         return -1;
     }
     if(cmd.size() == 2 && cmd[0].compare("get") == 0){
-        *res_code = get();//TODO
+        *res_code = get(cmd, wbuf, wlen);
     }else if(cmd.size() == 2 && cmd[0].compare("del") == 0){
-        *res_code = del();//TODO
+        *res_code = del(cmd, wbuf, wlen);
     }else if(cmd.size() == 3 && cmd[0].compare("set") == 0){
-        *res_code = set();//TODO
+        *res_code = set(cmd, wbuf, wlen);
     }else{
         //cmd not recognized
         *res_code = Rescode::RES_ERR;
