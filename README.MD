@@ -38,7 +38,6 @@ str1/str2/.. = the string representing the command/value
 ### Response:
 
 where ms1, msg2, ... are:
-|-----|---------|
 | res | data... |
 |-----|---------|
 
