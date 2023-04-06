@@ -17,9 +17,8 @@ To compile and run:
 
 Basic Server: get, set, del
 PROTOCOL IMPLEMENTATION
-+-----+------+-----+------+--------
-| len | msg1 | len | msg2 | more...
-+-----+------+-----+------+--------
+| len | msg1 | len | msg2 | more... |
+|-----|------|-----|------|---------|
 len = length of the following msg (4bytes int)
 
 Request:
