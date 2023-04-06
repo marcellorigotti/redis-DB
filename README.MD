@@ -15,9 +15,9 @@ To compile and run:
 - ./client
 
 
+## PROTOCOL IMPLEMENTATION
 Basic Server: get, set, del
 
-## PROTOCOL IMPLEMENTATION
 | len | msg1 | len | msg2 | more... |
 |-----|------|-----|------|---------|
 
