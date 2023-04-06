@@ -16,18 +16,21 @@ To compile and run:
 
 
 Basic Server: get, set, del
+
 PROTOCOL IMPLEMENTATION
 | len | msg1 | len | msg2 | more... |
 |-----|------|-----|------|---------|
-len = length of the following msg (4bytes int)
+
+len(4bytes int) = length of the following msg 
 
 Request:
+
 where ms1, msg2, ... are:
-+------+-----+------+-----+------+-----+-----+------+
 | nstr | len | str1 | len | str2 | ... | len | strn |
-+------+-----+------+-----+------+-----+-----+------+
-nstr = number of string, for each string we then have (4bytes int)
-len = lenght of the string (4bytes int)
+|------|-----|------|-----|------|-----|-----|------|
+
+nstr(4bytes int) = number of string, for each string we then have 
+len(4bytes int) = lenght of the string 
 str1/str2/.. = the string representing the command/value 
 
 Response:
