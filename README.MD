@@ -13,3 +13,28 @@ To compile and run:
 - cmake -- build .
 - ./server OR ./serverEventLoop
 - ./client
+
+
+Basic Server: get, set, del
+PROTOCOL IMPLEMENTATION
++-----+------+-----+------+--------
+| len | msg1 | len | msg2 | more...
++-----+------+-----+------+--------
+len = length of the following msg (4bytes int)
+
+Request:
+where ms1, msg2, ... are:
++------+-----+------+-----+------+-----+-----+------+
+| nstr | len | str1 | len | str2 | ... | len | strn |
++------+-----+------+-----+------+-----+-----+------+
+nstr = number of string, for each string we then have (4bytes int)
+len = lenght of the string (4bytes int)
+str1/str2/.. = the string representing the command/value 
+
+Response:
+where ms1, msg2, ... are:
++-----+---------+
+| res | data... |
++-----+---------+
+res = status code representing the outcome of the operation (4bytes int)
+data = optional data (for example when calling get)

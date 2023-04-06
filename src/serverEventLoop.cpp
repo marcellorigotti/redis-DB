@@ -14,6 +14,8 @@
 
 
 const size_t max_msg_size = 4096; 
+const size_t max_args = 1024;
+
 
 static void msg(const char *msg) {
     std::cout << msg << std::endl;
@@ -27,6 +29,11 @@ enum class State : uint8_t{
     STATE_REQ = 0, //read request
     STATE_RES = 1, //send response
     STATE_END = 2, //terminate connection
+};
+enum class Rescode : int32_t{
+    RES_OK = 0,
+    RES_ERR = 1,
+    RES_NX = 2,
 };
 
 struct Conn {
@@ -92,6 +99,55 @@ static bool try_write(Conn* conn){
 static void handle_res(Conn* conn){
     while(try_write(conn)) {}
 }
+static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<std::string>& cmd){
+    if(rlen < 4) //not enough data, cannot read the number of commands (4 bytes needed)
+        return -1; 
+    uint32_t ncmd = 0;
+    memcpy(&ncmd, &rbuf[0], 4); //reading the number of commands
+    if(ncmd > max_args) //too many arguments
+        return -1;
+    
+    size_t pos = 4;
+    while(ncmd--){ //loop until all the commands/args are gathered
+        if(pos + 4 > rlen) //check if we can read the len of the next command 
+            return -1;
+        uint32_t cmdlen = 0;
+        memcpy(&cmdlen, &rbuf[pos], 4);
+        if(pos + 4 + cmdlen > rlen) //check if we can read the command
+            return -1;
+        cmd.push_back(std::string(rbuf[pos+4], cmdlen));
+        pos += 4 + cmdlen;
+    }
+    if(pos != rlen)
+        return -1;
+
+    return 0;
+}
+//computes the request parsing the commands and elaborating them
+static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code, uint8_t* wbuf, uint32_t* wlen){
+    std::vector<std::string> cmd;
+
+    if(parse_req(rbuf, rlen, cmd)){ //we parse the request and add the command to our string vector
+        msg("Bad request");
+        return -1;
+    }
+    if(cmd.size() == 2 && cmd[0].compare("get") == 0){
+        *res_code = get();//TODO
+    }else if(cmd.size() == 2 && cmd[0].compare("del") == 0){
+        *res_code = del();//TODO
+    }else if(cmd.size() == 3 && cmd[0].compare("set") == 0){
+        *res_code = set();//TODO
+    }else{
+        //cmd not recognized
+        *res_code = Rescode::RES_ERR;
+        const char* msg = "Unknown command";
+        memcpy(&wbuf, &msg, strlen(msg));
+        *wlen = strlen(msg);
+        return 0;
+    }
+
+    return 0;
+}
 static bool one_request(Conn* conn){
     //try to parse one request
     if(conn->rbuf_size < 4)
@@ -106,10 +162,20 @@ static bool one_request(Conn* conn){
     if(4 + len > conn->rbuf_size)
         return false; //not enough data, we'll try later on
     std::cout << "Msg received, providing response" << std::endl;
-    //create echo response
-    memcpy(&conn->wbuf[0], &len, 4);
-    memcpy(&conn->wbuf[4], &conn->rbuf[4], len);
-    conn->wbuf_size = (size_t)(4 + len);
+    
+    //handle the request and create a response
+    Rescode res_code = Rescode::RES_OK;
+    uint32_t wlen = 0;
+    int32_t err = compute_req(&conn->rbuf[4], len, &res_code, &conn->wbuf[4 + 4], &wlen);
+    if(err){
+        conn->state = State::STATE_END;
+        return false;
+    }
+    wlen += 4;
+    memcpy(&conn->wbuf[0], &wlen, 4); //total length of the message (status code + data)
+    memcpy(&conn->wbuf[4], &res_code, 4); //length of the data (can be 0)
+    conn->wbuf_size += 4 + wlen;
+
 
     //remove what we have just processed from the buffer
     //multiple memmove call are inefficient, optimize this later on
