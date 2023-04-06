@@ -19,9 +19,7 @@ static void die(const char *msg) {
 }
 static int32_t read_full(int fd, char* buf, size_t n){
     while(n > 0){
-        std::cout << n << std::endl;
         size_t len = read(fd, buf, n);
-        std::cout << len << std::endl;
         if(len <= 0)
             return -1; //error, unexpected EOF
         assert(len <= n);
@@ -54,7 +52,10 @@ static int32_t query(int fd, const char* text){
     if(int32_t err = write_all(fd, wbuf, 4 + len))
         return err;
     
+    return 0;
+}
 
+static int32_t read_res(int fd){
     //Read messages if present
     char rbuf[4 + max_msg_size + 1];
     //4 bytes header
@@ -66,7 +67,7 @@ static int32_t query(int fd, const char* text){
             msg("Read error");
         return err;
     }
-    
+    uint32_t len = 0;
     memcpy(&len, rbuf, 4); //endianess to be taken into account
     if(len > max_msg_size){
         msg("Msg content too long");
@@ -80,7 +81,7 @@ static int32_t query(int fd, const char* text){
     }
     rbuf[4 + len] = '\0';
     std::cout << "Server msg: " << &rbuf[4] << std::endl;
-    
+
     return 0;
 }
 
@@ -99,6 +100,7 @@ int main() {
         die("connect");
     }
 
+
     int32_t err = query(fd, "hello1!");
     if(err)
         goto L_DONE;
@@ -111,6 +113,19 @@ int main() {
     if(err)
         goto L_DONE;
 
+
+
+    err = read_res(fd);
+    if(err)
+        goto L_DONE;
+    
+    err = read_res(fd);
+    if(err)
+        goto L_DONE;
+    
+    err = read_res(fd);
+    if(err)
+        goto L_DONE;
 
 L_DONE:
     close(fd);
