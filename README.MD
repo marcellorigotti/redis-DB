@@ -15,14 +15,15 @@ To compile and run:
 - ./server OR ./serverEventLoop
 - ./client (set || get || del) (cmd args)
 
-i.e. ./client set aa bb -> will create an entry in the database with key aa and val bb
-     ./client get aa -> return bb
-     ./client del aa -> delete entry aa
+i.e. 
+- ./client set aa bb -> will create an entry in the database with key aa and val bb
+- ./client get aa -> return bb
+- ./client del aa -> delete entry aa
      
 Error code:
--[0] -> OK
--[1] -> ERR cmd not valid
--[2] -> Not present
+- [0] -> OK
+- [1] -> ERR cmd not valid
+- [2] -> Not present
 
 
 ## PROTOCOL IMPLEMENTATION
