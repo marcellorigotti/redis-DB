@@ -6,13 +6,23 @@ This project focuses on the creation of a redix like database (a very basic vers
 2) implement a custom protocol to handle more than 1request from the same connection (at the moment the server can handle 1 connection at a time).
     Currently we are using blocking system call, we'll modify our DB later on to handle non blocking call and handle multiple connections.
 3) added eventLoop to handle more connections simultaneously without blocking, client modified to send pipelining requests
+4) implemented get, set, del operations 
     
 To compile and run:
 - cd ./build
 - cmake ../
 - cmake -- build .
 - ./server OR ./serverEventLoop
-- ./client
+- ./client (set || get || del) (cmd args)
+
+i.e. ./client set aa bb -> will create an entry in the database with key aa and val bb
+     ./client get aa -> return bb
+     ./client del aa -> delete entry aa
+     
+Error code:
+-[0] -> OK
+-[1] -> ERR cmd not valid
+-[2] -> Not present
 
 
 ## PROTOCOL IMPLEMENTATION

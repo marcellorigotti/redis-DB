@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <unordered_map>
 
 
 const size_t max_msg_size = 4096; 
@@ -50,6 +51,7 @@ struct Conn {
 };
 
 static int32_t accept_conn(std::unordered_map<int, Conn*> &fd2conn, int fd){
+    msg("accept conn");
     struct sockaddr_in client_addr = {};
     socklen_t socklen = sizeof(client_addr);
     int connfd = accept(fd, (struct sockaddr *)&client_addr, &socklen);
@@ -70,7 +72,8 @@ static int32_t accept_conn(std::unordered_map<int, Conn*> &fd2conn, int fd){
     fd2conn[connfd] = conn;
     return 0;
 }
-static bool try_write(Conn* conn){  
+static bool try_write(Conn* conn){
+    msg("try write");  
     ssize_t len = 0;
     do{
         size_t remain = conn->wbuf_size - conn->wbuf_sent;
@@ -98,9 +101,11 @@ static bool try_write(Conn* conn){
     return true;
 }
 static void handle_res(Conn* conn){
+    msg("handle res");
     while(try_write(conn)) {}
 }
 static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<std::string>& cmd){
+    msg("parse req");
     if(rlen < 4) //not enough data, cannot read the number of commands (4 bytes needed)
         return -1; 
     uint32_t ncmd = 0;
@@ -116,7 +121,7 @@ static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<s
         memcpy(&cmdlen, &rbuf[pos], 4);
         if(pos + 4 + cmdlen > rlen) //check if we can read the command
             return -1;
-        cmd.push_back(std::string(rbuf[pos+4], cmdlen));
+        cmd.push_back(std::string((char*)&rbuf[pos+4], cmdlen));
         pos += 4 + cmdlen;
     }
     if(pos != rlen)
@@ -125,27 +130,31 @@ static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<s
     return 0;
 }
 static Rescode get(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
-    if(!database.contains(cmd[1]))
+    msg("get");
+    if(!database.count(cmd[1]))
         return Rescode::RES_NX;
     std::string res_val = database[cmd[1]];
     assert(res_val.size() <= max_msg_size);
-    memcpy(&wbuf, res_val.data(), res_val.size());
+    memcpy(wbuf, res_val.data(), res_val.size());
     *wlen = res_val.size();
 
     return Rescode::RES_OK;
 }
 static Rescode set(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+    msg("set");
     database[cmd[1]] = cmd[2];
     
     return Rescode::RES_OK;
 }
 static Rescode del(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+    msg("del");
     database.erase(cmd[1]);
     
     return Rescode::RES_OK;
 }
 //computes the request parsing the commands and elaborating them
 static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code, uint8_t* wbuf, uint32_t* wlen){
+    msg("compute req");
     std::vector<std::string> cmd;
 
     if(parse_req(rbuf, rlen, cmd)){ //we parse the request and add the command to our string vector
@@ -161,15 +170,16 @@ static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code
     }else{
         //cmd not recognized
         *res_code = Rescode::RES_ERR;
-        const char* msg = "Unknown command";
-        memcpy(&wbuf, &msg, strlen(msg));
-        *wlen = strlen(msg);
+        std::string msg = "Unknown command\0";
+        memcpy(wbuf, msg.data(), msg.size());
+        *wlen = msg.size();
         return 0;
     }
 
     return 0;
 }
 static bool one_request(Conn* conn){
+    msg("one request");
     //try to parse one request
     if(conn->rbuf_size < 4)
         return false; //not enough data, we'll try later on
@@ -195,7 +205,7 @@ static bool one_request(Conn* conn){
     wlen += 4;
     memcpy(&conn->wbuf[0], &wlen, 4); //total length of the message (status code + data)
     memcpy(&conn->wbuf[4], &res_code, 4); //length of the data (can be 0)
-    conn->wbuf_size += 4 + wlen;
+    conn->wbuf_size = 4 + wlen;
 
 
     //remove what we have just processed from the buffer
@@ -214,6 +224,7 @@ static bool one_request(Conn* conn){
 }
 
 static bool try_read(Conn* conn){
+    msg("try read");
     assert(conn->rbuf_size <= sizeof(conn->rbuf));
     ssize_t len = 0;
     do{
@@ -247,13 +258,15 @@ static bool try_read(Conn* conn){
 
 
 static void handle_req(Conn* conn){
+    msg("handle req");
     while(try_read(conn)){}
 }
 
 static void handle_conn(Conn* conn){
+    msg("handle conn");
     switch (conn->state)
     {
-    case State::STATE_REQ :
+    case State::STATE_REQ:
         handle_req(conn);
         break;
     case State::STATE_RES:
