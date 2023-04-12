@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <iostream>
 #include <cmath>
 #include <string>
 
@@ -25,7 +26,7 @@ public:
 
     void insert(std::string key, std::string val){
         size_t index = hash(key); //hash our key
-        Node* tmp; //create a new node to be added and fill it with key, val and hashval
+        Node* tmp = new Node(); //create a new node to be added and fill it with key, val and hashval
         tmp->hcode = index;
         tmp->key = key;
         tmp->val = val;
@@ -33,6 +34,38 @@ public:
         tmp->next = next;
         table[index] = tmp;
         size++;
+    }
+    
+    void del(std::string key){
+        Node** tmp = lookup(key);
+        if(!tmp)
+            return;    
+        *tmp = (*tmp)->next;     
+        size--;
+    }
+
+    Node** get(std::string key){
+        if(!table)
+            return NULL;
+        Node** tmp = lookup(key);
+        if(!tmp)
+            return NULL;
+        return tmp;
+    }
+
+    Node** lookup(std::string key){
+        if(!table){
+            return NULL;
+        }
+        size_t index = hash(key);
+        Node** tmp = &table[index];//list of nodes colliding
+        while(*tmp){
+            if((*tmp)->key == key){
+                return tmp;
+            }
+            tmp = &(*tmp)->next;
+        }
+        return NULL;
     }
 
 private:
@@ -50,3 +83,19 @@ private:
         return hashcode & mask;
     }
 };
+
+// int main(){
+//     HashTable map = HashTable();
+//     map.insert("Io", "capra");
+//     map.insert("Tu", "capra");
+//     map.insert("asdsad", "capra");
+//     map.insert("Icdvfbvbo", "capra");
+//     map.insert("Tsdddfgfggu", "capra");
+//     map.insert("Eghhhhhli", "capra");
+//     map.insert("Irrrreo", "capra");
+//     map.insert("Tuwrrr", "capra");
+//     map.insert("Egltyuuuui", "capra");
+//     std::cout  << (*map.get("Egltyuuuui"))->val << std::endl;
+//     map.del("Egltyuuuui");
+//     std::cout  << (*map.get("Egltyuuuui"))->val << std::endl;
+// }
