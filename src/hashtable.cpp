@@ -12,6 +12,7 @@ struct Node{
     std::string key;
     std::string val;
 };
+
 //size = power of 2 so that we can use bitwise & (modulo)
 //maybe start with something like 8/16 and eventually resize
 class HashTable {
@@ -36,14 +37,15 @@ public:
         size++;
     }
     
-    void del(std::string key){
+    bool del(std::string key){
         Node** tmp = lookup(key);
         if(!tmp)
-            return;    
+            return false;    
         *tmp = (*tmp)->next;     
         size--;
+        return true;
     }
-
+    
     Node** get(std::string key){
         if(!table)
             return NULL;
@@ -53,19 +55,8 @@ public:
         return tmp;
     }
 
-    Node** lookup(std::string key){
-        if(!table){
-            return NULL;
-        }
-        size_t index = hash(key);
-        Node** tmp = &table[index];//list of nodes colliding
-        while(*tmp){
-            if((*tmp)->key == key){
-                return tmp;
-            }
-            tmp = &(*tmp)->next;
-        }
-        return NULL;
+    bool is_empty(){
+        return size == 0;
     }
 
 private:
@@ -81,6 +72,20 @@ private:
             hashcode += (size_t)(key[i] * pow(PRIME_CONST, i)) & mask;
         }
         return hashcode & mask;
+    }
+    Node** lookup(std::string key){
+        if(!table){
+            return NULL;
+        }
+        size_t index = hash(key);
+        Node** tmp = &table[index];//list of nodes colliding
+        while(*tmp){
+            if((*tmp)->key == key){
+                return tmp;
+            }
+            tmp = &(*tmp)->next;
+        }
+        return NULL;
     }
 };
 
