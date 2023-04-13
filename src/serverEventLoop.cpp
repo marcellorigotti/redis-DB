@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <unordered_map>
-
+#include "dataStructures/hashtable.h"
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
@@ -278,6 +278,7 @@ static void handle_conn(Conn* conn){
 }
 
 int main(){
+    
     std::cout << "creating the server socket..." << std::endl;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
