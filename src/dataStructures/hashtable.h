@@ -19,6 +19,7 @@ public:
     Node** get(std::string key);
     bool has(std::string key);
     bool is_empty();
+    std::vector<std::string> keys();
     size_t getSize();
 
 private:

@@ -37,6 +37,17 @@ enum class Rescode : int32_t{
     RES_ERR = 1,
     RES_NX = 2,
 };
+enum class SER: int{
+    SER_NIL = 0,
+    SER_ERR = 1,
+    SER_STR = 2,
+    SER_INT = 3,
+    SER_ARR = 4,
+};
+enum class Error{
+    ERR_UNKNOWN = 1,
+    ERR_2BIG = 2,
+};
 
 struct Conn {
     int fd = -1;
@@ -129,59 +140,83 @@ static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<s
 
     return 0;
 }
-static Rescode get(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+
+static void out_nil(std::string &out) {
+    out.push_back(int(SER::SER_NIL));
+}
+
+static void out_str(std::string &out, const std::string &val) {
+    out.push_back(int(SER::SER_STR));
+    uint32_t len = (uint32_t)val.size();
+    out.append((char *)&len, 4);
+    out.append(val);
+}
+
+static void out_int(std::string &out, int64_t val) {
+    out.push_back(int(SER::SER_INT));
+    out.append((char *)&val, 8);
+}
+
+static void out_err(std::string &out, Error code, const std::string &msg) {
+    out.push_back(int(SER::SER_ERR));
+    out.append((char *)&code, 4);
+    uint32_t len = (uint32_t)msg.size();
+    out.append((char *)&len, 4);
+    out.append(msg);
+}
+
+static void out_arr(std::string &out, uint32_t n) {
+    out.push_back(int(SER::SER_ARR));
+    out.append((char *)&n, 4);
+}
+
+static void get(const std::vector<std::string>& cmd, std::string& out){
     msg("get");
     if(!database.has(cmd[1]))
-        return Rescode::RES_NX;
+        return out_nil(out);
     Node** res = database.get(cmd[1]);
     if(!res)
-        return Rescode::RES_NX;
+        return out_nil(out);
     std::string res_val = (*res)->val;
     assert(res_val.size() <= max_msg_size);
-    memcpy(wbuf, res_val.data(), res_val.size());
-    *wlen = res_val.size();
-
-    return Rescode::RES_OK;
+    out_str(out, res_val);
 }
-static Rescode set(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+static void set(const std::vector<std::string>& cmd, std::string& out){
     msg("set");
     database.insert(cmd[1], cmd[2]);
-
-    return Rescode::RES_OK;
+    return out_nil(out);
 }
-static Rescode del(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
+static void del(const std::vector<std::string>& cmd, std::string& out){
     msg("del");
     if(database.del(cmd[1])){
-        return Rescode::RES_OK;
+        return out_int(out, 1);
     }
-    
-    return Rescode::RES_NX;
+    return out_int(out, 0);
 }
-//computes the request parsing the commands and elaborating them
-static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code, uint8_t* wbuf, uint32_t* wlen){
-    msg("compute req");
-    std::vector<std::string> cmd;
-
-    if(parse_req(rbuf, rlen, cmd)){ //we parse the request and add the command to our string vector
-        msg("Bad request");
-        return -1;
+static void keys(const std::vector<std::string>& cmd, std::string& out){
+    msg("keys");
+    std::vector<std::string> keys = database.keys();
+    out_arr(out, keys.size());
+    for(const std::string& key: keys){
+        out_str(out, key);
     }
-    if(cmd.size() == 2 && cmd[0].compare("get") == 0){
-        *res_code = get(cmd, wbuf, wlen);
+}
+
+//computes the request parsing the commands and elaborating them
+static void compute_req(std::vector<std::string>& cmd, std::string& out){
+    msg("compute req");
+    if(cmd.size() == 1 && cmd[0].compare("keys") == 0){
+        keys(cmd, out);
+    }else if(cmd.size() == 2 && cmd[0].compare("get") == 0){
+        get(cmd, out);
     }else if(cmd.size() == 2 && cmd[0].compare("del") == 0){
-        *res_code = del(cmd, wbuf, wlen);
+        del(cmd, out);
     }else if(cmd.size() == 3 && cmd[0].compare("set") == 0){
-        *res_code = set(cmd, wbuf, wlen);
+        set(cmd, out);
     }else{
         //cmd not recognized
-        *res_code = Rescode::RES_ERR;
-        std::string msg = "Unknown command\0";
-        memcpy(wbuf, msg.data(), msg.size());
-        *wlen = msg.size();
-        return 0;
+        out_err(out, Error::ERR_UNKNOWN, "Unknown command");
     }
-
-    return 0;
 }
 static bool one_request(Conn* conn){
     msg("one request");
@@ -199,19 +234,27 @@ static bool one_request(Conn* conn){
         return false; //not enough data, we'll try later on
     std::cout << "Msg received, providing response" << std::endl;
     
-    //handle the request and create a response
-    Rescode res_code = Rescode::RES_OK;
-    uint32_t wlen = 0;
-    int32_t err = compute_req(&conn->rbuf[4], len, &res_code, &conn->wbuf[4 + 4], &wlen);
-    if(err){
+    ////
+    //new code
+    std::vector<std::string> cmd; 
+    if(parse_req(&conn->rbuf[4], len, cmd)){
+        msg("bad req");
         conn->state = State::STATE_END;
         return false;
     }
-    wlen += 4;
-    memcpy(&conn->wbuf[0], &wlen, 4); //total length of the message (status code + data)
-    memcpy(&conn->wbuf[4], &res_code, 4); //length of the data (can be 0)
-    conn->wbuf_size = 4 + wlen;
+    std::string out; //used as temporary storage for the response
+    compute_req(cmd, out);
+    if(4 + out.size() > max_msg_size){
+        out.clear();
+        out_err(out, Error::ERR_2BIG, "response is too big");
+    }
 
+    uint32_t wlen = out.size();
+    memcpy(&conn->wbuf[0], &wlen, 4); //total length of the message 
+    memcpy(&conn->wbuf[4], out.data(), wlen); //length of the data (can be 0)
+    conn->wbuf_size = 4 + wlen;
+    //
+    ////    
 
     //remove what we have just processed from the buffer
     //multiple memmove call are inefficient, optimize this later on

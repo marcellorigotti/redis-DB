@@ -6,6 +6,7 @@
 #include <cmath>
 #include <string>
 #include "hashtable.h"
+#include <vector>
 
 //size = power of 2 so that we can use bitwise & (modulo)
 //maybe start with something like 8/16 and eventually resize
@@ -34,7 +35,8 @@ bool HashTable::del(std::string key){
         return false;
     Node** tmp = lookup(key);
     if(!tmp)
-        return false;    
+        return false;
+        
     *tmp = (*tmp)->next;     
     size--;
     return true;
@@ -64,6 +66,20 @@ bool HashTable::is_empty(){
 
 size_t HashTable::getSize(){
     return size;
+}
+
+std::vector<std::string> HashTable::keys(){
+    std::vector<std::string> keys;
+    if(!table)
+        return keys;
+    for(int i=0; i<mask+1; i++){
+        Node* tmp = table[i];
+        while(tmp){
+            keys.push_back(tmp->key);
+            tmp = tmp->next;
+        }
+    }
+    return keys;
 }
 
 Node** table = NULL;
