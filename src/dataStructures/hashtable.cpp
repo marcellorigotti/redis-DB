@@ -36,8 +36,9 @@ bool HashTable::del(std::string key){
     Node** tmp = lookup(key);
     if(!tmp)
         return false;
-        
-    *tmp = (*tmp)->next;     
+    Node* toDelete = *tmp;
+    *tmp = (*tmp)->next;   
+    delete toDelete; //TODO, check correctness of this delete, is this the correct way to deallocate memory?  
     size--;
     return true;
 }
