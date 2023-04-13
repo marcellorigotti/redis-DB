@@ -16,8 +16,8 @@
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
-//temporary storage 
-static std::unordered_map<std::string, std::string> database;
+//our custom hashtable
+static HashTable database = HashTable();
 
 static void msg(const char *msg) {
     std::cout << msg << std::endl;
@@ -131,9 +131,12 @@ static int32_t parse_req(const uint8_t* rbuf, const uint32_t rlen, std::vector<s
 }
 static Rescode get(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
     msg("get");
-    if(!database.count(cmd[1]))
+    if(!database.has(cmd[1]))
         return Rescode::RES_NX;
-    std::string res_val = database[cmd[1]];
+    Node** res = database.get(cmd[1]);
+    if(!res)
+        return Rescode::RES_NX;
+    std::string res_val = (*res)->val;
     assert(res_val.size() <= max_msg_size);
     memcpy(wbuf, res_val.data(), res_val.size());
     *wlen = res_val.size();
@@ -142,15 +145,17 @@ static Rescode get(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t*
 }
 static Rescode set(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
     msg("set");
-    database[cmd[1]] = cmd[2];
-    
+    database.insert(cmd[1], cmd[2]);
+
     return Rescode::RES_OK;
 }
 static Rescode del(const std::vector<std::string>& cmd, uint8_t* wbuf, uint32_t* wlen){
     msg("del");
-    database.erase(cmd[1]);
+    if(database.del(cmd[1])){
+        return Rescode::RES_OK;
+    }
     
-    return Rescode::RES_OK;
+    return Rescode::RES_NX;
 }
 //computes the request parsing the commands and elaborating them
 static int32_t compute_req(const uint8_t* rbuf, uint32_t rlen, Rescode* res_code, uint8_t* wbuf, uint32_t* wlen){
@@ -278,7 +283,6 @@ static void handle_conn(Conn* conn){
 }
 
 int main(){
-    
     std::cout << "creating the server socket..." << std::endl;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
