@@ -14,12 +14,13 @@ To compile and run:
 - cmake ../
 - cmake -- build .
 - ./server OR ./serverEventLoop
-- ./client (set || get || del) (cmd args)
+- ./client (set || get || del || keys) (cmd args)
 
 i.e. 
 - ./client set aa bb -> will create an entry in the database with key aa and val bb
 - ./client get aa -> return bb
 - ./client del aa -> delete entry aa
+- ./client keys -> list of the available keys
      
 Error code:
 - [0] -> OK

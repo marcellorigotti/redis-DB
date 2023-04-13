@@ -11,7 +11,7 @@
 
 const size_t max_msg_size = 4096; 
 
-enum class SER{
+enum class SER: int{
     SER_NIL = 0,
     SER_ERR = 1,
     SER_STR = 2,
@@ -73,6 +73,83 @@ static int32_t send_req(int fd, const std::vector<std::string>& cmd){
     return write_all(fd, wbuf, 4 + len);
 }
 
+static int32_t on_response(const uint8_t* data, size_t size){
+    if(size < 1){
+        msg("bad response0");
+        return -1;
+    }
+
+    switch (SER(data[0])){
+        case SER::SER_NIL:
+            std::cout << "(nil)" << std::endl;
+            return 1;
+
+        case SER::SER_ERR: {
+            if(size < 1 + 8){ //1byte of SERIALIZATION CODE + 4 bytes ERRCODE + 4bytes LEN of error message
+                msg("bad response1");
+                return -1;
+            }
+            int32_t code = 0;
+            uint32_t len = 0;
+            memcpy(&code, &data[1], 4);
+            memcpy(&len, &data[1+4], 4);
+            if(size < 1+8+len){
+                msg("bad response2");
+                return -1;
+            }
+            std::cout << "(err) " << code << ": " << std::string((char*)&data[1+4+4], len) << std::endl;
+            return 1+8+len;
+        }
+        case SER::SER_STR: {
+            if(size < 1 + 4){
+                msg("bad response3");
+                return -1;
+            }
+            uint32_t len = 0;
+            memcpy(&len, &data[1], 4);
+            if(size < 1+4+len){
+                msg("bad response4");
+                return -1;
+            }
+            std::cout << "(str): " << std::string((char*)&data[1+4], len) << std::endl;
+            return 1+4+len;
+        }
+        case SER::SER_INT: {
+            if(size < 1 + 8){ //int are 8 bytes
+                msg("bad response5");
+                return -1;        
+            } 
+            int64_t val = 0;
+            memcpy(&val, &data[1], 8);
+            std::cout << "(int): " << val << std::endl;
+            return 1+8;
+        }
+        case SER::SER_ARR: {
+            if(size < 1 + 4){ //4 bytes representing the number of elements of the array
+                msg("bad response6");
+                return -1;        
+            }
+            uint32_t len = 0;
+            memcpy(&len, &data[1], 4);
+            std::cout << "(arr) len: " << len << std::endl;
+            int arr_bytes = 1 + 4;
+            for(int i=0; i<len; i++){
+                int32_t rv = on_response(&data[arr_bytes], size - arr_bytes);
+                if(rv < 0){
+                    return rv;
+                }
+                arr_bytes += rv;
+            }
+            std::cout << "(arr) end" << std::endl;
+            return arr_bytes;
+        }
+        default: {
+            msg("bad response7");
+            return -1;
+        }
+    }
+}
+
 static int32_t read_res(int fd){
     //Read messages if present
     char rbuf[4 + max_msg_size + 1];
@@ -92,10 +169,7 @@ static int32_t read_res(int fd){
         msg("Msg content too long");
         return -1;
     }
-    if (len < 4) {
-        msg("bad response");
-        return -1;
-    }
+
     //reply body
     err = read_full(fd, &rbuf[4], len);
     if(err){
@@ -103,11 +177,14 @@ static int32_t read_res(int fd){
         return err;
     }
 
-    uint32_t rescode = 0;
-    memcpy(&rescode, &rbuf[4], 4);
+    //handle response
+    int32_t rv = on_response((uint8_t*)&rbuf[4], len);
+    if(rv > 0 && (uint32_t)rv != len){
+        msg("bad response-2");
+        return -1;
+    }
 
-    std::cout << "Server says: [" << rescode << "] " << std::string(&rbuf[8],len - 4) << std::endl;
-    return 0;
+    return rv;
 }
 
 int main(int argc, char **argv) {

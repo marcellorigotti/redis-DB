@@ -172,8 +172,10 @@ static void out_arr(std::string &out, uint32_t n) {
 
 static void get(const std::vector<std::string>& cmd, std::string& out){
     msg("get");
-    if(!database.has(cmd[1]))
+    if(!database.has(cmd[1])){
+        msg("here");
         return out_nil(out);
+    }
     Node** res = database.get(cmd[1]);
     if(!res)
         return out_nil(out);
@@ -249,7 +251,7 @@ static bool one_request(Conn* conn){
         out_err(out, Error::ERR_2BIG, "response is too big");
     }
 
-    uint32_t wlen = out.size();
+    uint32_t wlen = (uint32_t)out.size();
     memcpy(&conn->wbuf[0], &wlen, 4); //total length of the message 
     memcpy(&conn->wbuf[4], out.data(), wlen); //length of the data (can be 0)
     conn->wbuf_size = 4 + wlen;
