@@ -15,6 +15,7 @@ struct Node{
 
 //size = power of 2 so that we can use bitwise & (modulo)
 //maybe start with something like 8/16 and eventually resize
+//TODO: implement resize
 class HashTable {
 public:
     HashTable(size_t n = 8) {
@@ -38,6 +39,8 @@ public:
     }
     
     bool del(std::string key){
+        if(!table)
+            return false;
         Node** tmp = lookup(key);
         if(!tmp)
             return false;    
@@ -55,8 +58,21 @@ public:
         return tmp;
     }
 
+    bool has(std::string key){
+        if(!table)
+            return false;
+        Node** tmp = lookup(key);
+        if(!tmp)
+            return false;
+        return true;
+    }
+
     bool is_empty(){
         return size == 0;
+    }
+
+    size_t getSize(){
+        return size;
     }
 
 private:
@@ -88,19 +104,3 @@ private:
         return NULL;
     }
 };
-
-// int main(){
-//     HashTable map = HashTable();
-//     map.insert("Io", "capra");
-//     map.insert("Tu", "capra");
-//     map.insert("asdsad", "capra");
-//     map.insert("Icdvfbvbo", "capra");
-//     map.insert("Tsdddfgfggu", "capra");
-//     map.insert("Eghhhhhli", "capra");
-//     map.insert("Irrrreo", "capra");
-//     map.insert("Tuwrrr", "capra");
-//     map.insert("Egltyuuuui", "capra");
-//     std::cout  << (*map.get("Egltyuuuui"))->val << std::endl;
-//     map.del("Egltyuuuui");
-//     std::cout  << (*map.get("Egltyuuuui"))->val << std::endl;
-// }
