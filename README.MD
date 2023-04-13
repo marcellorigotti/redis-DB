@@ -7,7 +7,7 @@ This project focuses on the creation of a redix like database (a very basic vers
     Currently we are using blocking system call, we'll modify our DB later on to handle non blocking call and handle multiple connections.
 3) added eventLoop to handle more connections simultaneously without blocking, client modified to send pipelining requests
 4) implemented get, set, del operations 
-5) implementing custom hashtable for our database
+5) implemented custom hashtable for our database (TODO: implement resizing when load factor too high)
     
 To compile and run:
 - cd ./build
