@@ -11,3 +11,5 @@ target_include_directories(serverEventLoop PUBLIC
                           "$src/dataStructures"
                           )
 target_link_libraries(serverEventLoop PUBLIC HashTable)
+target_link_libraries(serverEventLoop PUBLIC AvlTree)
+
