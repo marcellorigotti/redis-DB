@@ -5,6 +5,7 @@ AvlTree::AvlTree(uint32_t val){
     node->depth = 1;
     node->cnt = 1;
     node->left = node->right = node->parent = NULL;
+    root = node;
 }
 uint32_t AvlTree::avl_depth(AvlNode* node){
     return node ? node->depth : 0;
@@ -107,5 +108,65 @@ AvlNode* AvlTree::avl_del(AvlNode* node){
         }else{
             return victim;
         }
+    }
+}
+
+void AvlTree::add(uint32_t val){
+    if(!root)
+        AvlTree(val);
+    else{
+        AvlNode* new_node = new AvlNode;
+        new_node->val = val;
+
+        AvlNode* current = root;
+        while (true)
+        {
+            AvlNode** from = (val < current->val) ? &current->left : &current->right;
+            if(!from){
+                (*from) = new_node;
+                new_node->parent = current;
+                root = avl_fix(new_node);
+                break;
+            }
+            current = *from;
+        }
+    }
+}
+
+bool AvlTree::del(uint32_t val){
+    AvlNode* current = root;
+    while(current){
+        if(current->val == val)
+            break;
+        current = val < current->val ? current->left : current->right; 
+    }
+    if(!current)
+        return false;
+    root = avl_del(current);
+    delete current;
+    return true;
+}
+
+void AvlTree::avl_verify(AvlNode* parent, AvlNode* node){
+    if(!node)
+        return;
+    assert(node->parent == parent);
+    avl_verify(node, node->left);
+    avl_verify(node, node->right);
+
+    assert(node->cnt == 1 + avl_cnt(node->left) + avl_cnt(node->right));
+
+    uint32_t l_count = avl_depth(node->left);
+    uint32_t r_count = avl_depth(node->right);
+    assert(l_count == r_count || l_count == r_count+1 || l_count+1 == r_count);
+    assert(node->depth == 1 + std::max(l_count, r_count));
+    
+    if(node->left){
+        assert(node->left->parent == node);
+        assert(node->left->val <= node->val);
+    }
+    if(node->right){
+        assert(node->right->parent == node);
+        assert(node->right->val >= node->val);
     }
 }

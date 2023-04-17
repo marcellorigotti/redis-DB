@@ -12,10 +12,12 @@ struct AvlNode{
 
 class AvlTree{
 public:
-    AvlTree(uint32_t val);
+    AvlTree(uint32_t val = 0);
     void add(uint32_t val);
     bool del(uint32_t val);
+    void avl_verify(AvlNode* node, AvlNode* parent = NULL);
 private:
+    AvlNode* root = NULL;
     uint32_t avl_depth(AvlNode* node);
     uint32_t avl_cnt(AvlNode* node);
     void avl_update(AvlNode* node);
