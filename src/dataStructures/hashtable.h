@@ -7,7 +7,7 @@ struct Node{
     Node* next = NULL;
     uint64_t hcode = 0;
     std::string key;
-    std::string val;
+    std::string val; //represents our score TODO: change it to int/float
 };
 
 class HashTable {
