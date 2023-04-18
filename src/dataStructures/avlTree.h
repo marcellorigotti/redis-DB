@@ -2,9 +2,10 @@
 #include <string>
 
 struct AvlNode{
-    uint32_t depth = 0;
-    uint32_t cnt = 0; //used to implement rank-based query!
-    uint32_t val = 0;
+    uint32_t depth = 1;
+    uint32_t cnt = 1; //used to implement rank-based query!
+    uint32_t val = 0; //considered score
+    std::string name; //we'll keep a corresponding name for the sortedSet
     AvlNode* left = NULL;
     AvlNode* right = NULL;
     AvlNode* parent = NULL;
@@ -12,9 +13,9 @@ struct AvlNode{
 
 class AvlTree{
 public:
-    AvlTree(uint32_t val = 0);
-    void add(uint32_t val);
-    bool del(uint32_t val);
+    AvlTree(uint32_t val = 0, std::string name = "a");
+    void add(uint32_t val, std::string name);
+    bool del(uint32_t val, std::string name);
     bool avl_verify(AvlNode* node, AvlNode* parent = NULL);
     void printAvl();
     uint32_t avl_cnt(AvlNode* node);

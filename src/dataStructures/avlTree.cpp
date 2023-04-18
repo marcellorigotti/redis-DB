@@ -2,8 +2,9 @@
 #include <iostream>
 #include <assert.h>
 
-AvlTree::AvlTree(uint32_t val){
+AvlTree::AvlTree(uint32_t val, std::string name){
     root = new AvlNode;
+    root->name = name;
     root->depth = 1;
     root->cnt = 1;
     root->left = root->right = root->parent = NULL;
@@ -114,6 +115,7 @@ AvlNode* AvlTree::avl_del(AvlNode* node){
         //now we have detatched victim and its subtree (if presents)
         //we need to swap this with the original node to delete
         uint32_t victim_val = victim->val;
+        std::string victim_name = victim->name;
         *victim = *node;
         if (victim->left) {
             victim->left->parent = victim;
@@ -123,6 +125,7 @@ AvlNode* AvlTree::avl_del(AvlNode* node){
         }
         AvlNode* parent = node->parent;
         victim->val = victim_val;
+        victim->name = victim_name;
         if (parent) {
             (parent->left == node ? parent->left : parent->right) = victim;
             return root;
@@ -132,14 +135,21 @@ AvlNode* AvlTree::avl_del(AvlNode* node){
     }
 }
 
-void AvlTree::add(uint32_t val){
+void AvlTree::add(uint32_t val, std::string name){
     AvlNode* new_node = new AvlNode;
     new_node->val = val;
+    new_node->name = name;
 
     AvlNode* current = root;
     while (true)
     {
-        AvlNode** from = (val < current->val) ? &current->left : &current->right;
+        //we need to first compare the score and eventually the name
+        //if val is less then current then we go left
+        //if it is not we check if they are equal
+        //if they are not we go right
+        //if they are equal we do the same check on the name
+        //if the new name comes before then we go left otherwise we go right
+        AvlNode** from = (val < current->val) ? &current->left : (val == current->val ? (name < current->name ? &current->left : &current->right) : &current->right);
         if(!*from){
             (*from) = new_node;
             new_node->parent = current;
@@ -150,12 +160,12 @@ void AvlTree::add(uint32_t val){
     }
 }
 
-bool AvlTree::del(uint32_t val){
+bool AvlTree::del(uint32_t val, std::string name){
     AvlNode* current = root;
     while(current){
-        if(current->val == val)
+        if(current->val == val && current->name == name)
             break;
-        current = val < current->val ? current->left : current->right; 
+        current = val < current->val ? current->left : (val == current->val ? (name < current->name ? current->left : current->right) : current->right); 
     }
     if(!current)
         return false;
@@ -178,27 +188,47 @@ bool AvlTree::avl_verify(AvlNode* node, AvlNode* parent){
     if(!avl_verify(node->right, node))
         return false;
 
-    if(node->cnt != 1 + avl_cnt(node->left) + avl_cnt(node->right))
+    if(node->cnt != 1 + avl_cnt(node->left) + avl_cnt(node->right)){
+        std::cout << "cnt failed" << std::endl;
         return false;
+    }
 
     uint32_t l_count = avl_depth(node->left);
     uint32_t r_count = avl_depth(node->right);
-    if(!(l_count == r_count || l_count == r_count+1 || l_count+1 == r_count))
+    if(!(l_count == r_count || l_count == r_count+1 || l_count+1 == r_count)){
+        std::cout << "depth failed" << std::endl;
         return false;
-    if(node->depth != 1 + std::max(l_count, r_count))
+    }
+    if(node->depth != 1 + std::max(l_count, r_count)){
+        std::cout << "depth2 failed" << std::endl;
         return false;
+    }
     
     if(node->left){
-        if(node->left->parent != node)
+        if(node->left->parent != node){
+            std::cout << "left parent failed" << std::endl;
             return false;
-        if(node->left->val > node->val)
+        }
+        if(node->left->val > node->val){
+            std::cout << "ordering val left failed" << std::endl;
             return false;
+        }else if(node->left->val == node->val && node->left->name > node->name){
+            std::cout << "ordering name left failed" << std::endl;
+            return false;
+        }
     }
     if(node->right){
-        if(node->right->parent != node)
+        if(node->right->parent != node){
+            std::cout << "right parent failed" << std::endl;
             return false;
-        if(node->right->val < node->val)
+        }
+        if(node->right->val < node->val){
+            std::cout << "ordering val right failed" << std::endl;
             return false;
+        }else if (node->right->val == node->val && node->right->name < node->name){
+            std::cout << "ordering name right failed" << std::endl;
+            return false;
+        }
     }
     return true;
 }
