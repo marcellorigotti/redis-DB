@@ -23,10 +23,12 @@ i.e.
 - ./client del aa -> delete entry aa
 - ./client keys -> list of the available keys
      
-Error code:
-- [0] -> OK
-- [1] -> ERR cmd not valid
-- [2] -> Not present
+response code:
+- SER_NIL = 0
+- SER_ERR = 1
+- SER_STR = 2
+- SER_INT = 3 (1 = succefull operation, 0 = operation not done, it can be caused because we are trying to delete an element that is not present)
+- SER_ARR = 4
 
 
 ## PROTOCOL IMPLEMENTATION
