@@ -8,6 +8,7 @@ This project focuses on the creation of a redix like database (a very basic vers
 3) added eventLoop to handle more connections simultaneously without blocking, client modified to send pipelining requests
 4) implemented get, set, del operations 
 5) implemented custom hashtable for our database (TODO: implement resizing when load factor too high)
+6) implemented AvlTree and test for it, this will be used to build sorted set next
     
 To compile and run:
 - cd ./build
