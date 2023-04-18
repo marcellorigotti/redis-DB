@@ -328,139 +328,88 @@ static void handle_conn(Conn* conn){
     }
 }
 
-// int main(){
-//     std::cout << "creating the server socket..." << std::endl;
-//     int fd = socket(AF_INET, SOCK_STREAM, 0);
-//     if (fd == -1)
-//     {
-//         std::cerr << "Can't create a socket!";
-//         return -1;
-//     }
-//     int val = 1;
-//     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-
-//     // bind, this is the syntax that deals with IPv4 addresses (AF_INET)
-//     struct sockaddr_in addr = {};
-//     addr.sin_family = AF_INET;
-//     addr.sin_port = ntohs(1234);
-//     addr.sin_addr.s_addr = ntohl(0);    // wildcard address 0.0.0.0
-//     std::cout << "binding socket to addr..." << std::endl;
-
-//     if (bind(fd, (const sockaddr *)&addr, sizeof(addr)) == -1) {
-//         die("bind(): Can't bind to IP/port");
-//     }
-
-//     // listen
-//     std::cout << "listening..." << std::endl;
-//     if (listen(fd, SOMAXCONN) == -1) {
-//         die("listen(): Can't listen");
-//     }
-
-//     //map of all the client connections
-//     std::unordered_map<int, Conn*> fd2conn; 
-//     //set the listening mode to non blocking
-//     fcntl(fd, F_SETFL, O_NONBLOCK);
-//     //vector of all the events
-//     // struct pollfd {
-//     //     int   fd;         /* file descriptor */
-//     //     short events;     /* requested events */
-//     //     short revents;    /* returned events */
-//     // };
-//     std::vector<pollfd> poll_args;
-//     while (true) {
-//         poll_args.clear();
-//         //create a pollfd for our (server) listening socket and put it in the vector
-//         //of events
-//         pollfd pfd = {fd, POLLIN, 0};
-//         poll_args.push_back(pfd);
-
-//         for(auto const& [key, val]: fd2conn){
-//             if(!val)
-//                 continue;
-//                 pfd = {};
-//                 pfd.fd = val->fd;
-//                 pfd.events = (val->state == State::STATE_REQ) ? POLLIN : POLLOUT;
-//                 pfd.events = pfd.events | POLLERR;
-//                 poll_args.push_back(pfd);
-//         }
-//         //check for events
-//         int n = poll(poll_args.data(), poll_args.size(), 1000);
-//         if (n < 0)
-//             die("Poll() error");
-
-//         //loop through poll_args and process active connection
-//         for(size_t i = 1; i<poll_args.size(); i++){
-//             if(poll_args[i].revents){
-//                 Conn* conn = fd2conn[poll_args[i].fd];
-//                 //process the event relative to the connection
-//                 handle_conn(conn);
-//                 if(conn->state == State::STATE_END){
-//                     //terminate connection
-//                     fd2conn.erase(conn->fd);
-//                     close(conn->fd);
-//                     delete conn;
-//                 }
-
-//             }
-//         }
-
-//         //if we are listening accept new connections
-//         if(poll_args[0].revents){
-//             accept_conn(fd2conn, fd);
-//         }
-//     }
-
-//     close(fd);
-//     return 0;
-// }
-
 int main(){
-    AvlTree test = AvlTree();
-    test.add(2);
-    test.add(3);
-    test.add(4);
-    test.add(5);
-    test.add(6);
-    test.add(7);
-    test.add(8);
-    //test.add(9);
-    if(test.avl_verify(NULL, test.root))
-        std::cout << "Valid" << std::endl;
-    else
-        std::cout << "Non Valid AVL Tree" << std::endl;
+    std::cout << "creating the server socket..." << std::endl;
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd == -1)
+    {
+        std::cerr << "Can't create a socket!";
+        return -1;
+    }
+    int val = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
-    test.printAvl();
-    std::cout << std::endl;
+    // bind, this is the syntax that deals with IPv4 addresses (AF_INET)
+    struct sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    addr.sin_port = ntohs(1234);
+    addr.sin_addr.s_addr = ntohl(0);    // wildcard address 0.0.0.0
+    std::cout << "binding socket to addr..." << std::endl;
 
-    test.del(7);
-    std::cout<< "Del done" << std::endl;
-    if(test.avl_verify(NULL, test.root))
-        std::cout << "Valid" << std::endl;
-    else
-        std::cout << "Non Valid AVL Tree" << std::endl;
+    if (bind(fd, (const sockaddr *)&addr, sizeof(addr)) == -1) {
+        die("bind(): Can't bind to IP/port");
+    }
 
-    test.printAvl();
-    std::cout << std::endl;
-    std::cout<< "Add done" << std::endl;
-    test.add(10);
-    test.add(11);
-    if(test.avl_verify(NULL, test.root))
-        std::cout << "Valid" << std::endl;
-    else
-        std::cout << "Non Valid AVL Tree" << std::endl;
-    test.printAvl();
+    // listen
+    std::cout << "listening..." << std::endl;
+    if (listen(fd, SOMAXCONN) == -1) {
+        die("listen(): Can't listen");
+    }
 
-    test.add(2);
-    test.add(8);
-    if(test.avl_verify(NULL, test.root))
-        std::cout << "Valid" << std::endl;
-    else
-        std::cout << "Non Valid AVL Tree" << std::endl;
-    test.printAvl();
-    test.del(4);
-    if(test.avl_verify(NULL, test.root))
-        std::cout << "Valid" << std::endl;
-    else
-        std::cout << "Non Valid AVL Tree" << std::endl;
-    test.printAvl();
+    //map of all the client connections
+    std::unordered_map<int, Conn*> fd2conn; 
+    //set the listening mode to non blocking
+    fcntl(fd, F_SETFL, O_NONBLOCK);
+    //vector of all the events
+    // struct pollfd {
+    //     int   fd;         /* file descriptor */
+    //     short events;     /* requested events */
+    //     short revents;    /* returned events */
+    // };
+    std::vector<pollfd> poll_args;
+    while (true) {
+        poll_args.clear();
+        //create a pollfd for our (server) listening socket and put it in the vector
+        //of events
+        pollfd pfd = {fd, POLLIN, 0};
+        poll_args.push_back(pfd);
+
+        for(auto const& [key, val]: fd2conn){
+            if(!val)
+                continue;
+                pfd = {};
+                pfd.fd = val->fd;
+                pfd.events = (val->state == State::STATE_REQ) ? POLLIN : POLLOUT;
+                pfd.events = pfd.events | POLLERR;
+                poll_args.push_back(pfd);
+        }
+        //check for events
+        int n = poll(poll_args.data(), poll_args.size(), 1000);
+        if (n < 0)
+            die("Poll() error");
+
+        //loop through poll_args and process active connection
+        for(size_t i = 1; i<poll_args.size(); i++){
+            if(poll_args[i].revents){
+                Conn* conn = fd2conn[poll_args[i].fd];
+                //process the event relative to the connection
+                handle_conn(conn);
+                if(conn->state == State::STATE_END){
+                    //terminate connection
+                    fd2conn.erase(conn->fd);
+                    close(conn->fd);
+                    delete conn;
+                }
+
+            }
+        }
+
+        //if we are listening accept new connections
+        if(poll_args[0].revents){
+            accept_conn(fd2conn, fd);
+        }
+    }
+
+    close(fd);
+    return 0;
 }

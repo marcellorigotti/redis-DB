@@ -164,7 +164,7 @@ bool AvlTree::del(uint32_t val){
     return true;
 }
 
-bool AvlTree::avl_verify(AvlNode* parent, AvlNode* node){
+bool AvlTree::avl_verify(AvlNode* node, AvlNode* parent){
     if(!node)
         return true;
     if(node->parent != parent){
@@ -173,9 +173,9 @@ bool AvlTree::avl_verify(AvlNode* parent, AvlNode* node){
         std::cout << node->parent << " "<< parent->left->val << " " << parent->right->val << std::endl;
         return false;
     }
-    if(!avl_verify(node, node->left))
+    if(!avl_verify(node->left, node))
         return false;
-    if(!avl_verify(node, node->right))
+    if(!avl_verify(node->right, node))
         return false;
 
     if(node->cnt != 1 + avl_cnt(node->left) + avl_cnt(node->right))

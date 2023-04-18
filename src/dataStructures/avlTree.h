@@ -17,10 +17,11 @@ public:
     bool del(uint32_t val);
     bool avl_verify(AvlNode* node, AvlNode* parent = NULL);
     void printAvl();
+    uint32_t avl_cnt(AvlNode* node);
+
     AvlNode* root = NULL;
 private:
     uint32_t avl_depth(AvlNode* node);
-    uint32_t avl_cnt(AvlNode* node);
     void avl_update(AvlNode* node);
     AvlNode* rot_left(AvlNode* node);
     AvlNode* rot_right(AvlNode* node);
