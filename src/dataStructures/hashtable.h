@@ -6,7 +6,7 @@ const int PRIME_CONST = 31;
 struct Node{
     Node* next = NULL;
     uint64_t hcode = 0;
-    std::string key;
+    std::string key; //represents our name
     std::string val; //represents our score TODO: change it to int/float
 };
 
