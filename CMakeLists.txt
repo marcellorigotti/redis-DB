@@ -14,5 +14,6 @@ target_include_directories(serverEventLoop PUBLIC
 target_link_libraries(serverEventLoop PUBLIC HashTable)
 target_link_libraries(serverEventLoop PUBLIC AvlTree)
 target_link_libraries(avlTreeTest PUBLIC AvlTree)
+target_link_libraries(serverEventLoop PUBLIC SortedSet)
 
 
