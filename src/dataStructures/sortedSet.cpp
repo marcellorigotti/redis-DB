@@ -37,3 +37,45 @@ void SortedSet::del(std::string name){
     }
     return;
 }
+
+AvlNode* SortedSet::query(uint32_t score, std::string name, int64_t offset){
+    AvlNode* current = tree->root;
+    AvlNode* candidate = NULL;
+    while (current){
+        if(current->val < score || (current->val == score && current->name < name)){
+            current = current->right;
+        }else{
+            candidate = current;
+            current = current->left;
+        }
+    }
+    if(candidate){
+        candidate = offsetNode(candidate, offset);
+    }
+    return candidate ? candidate : NULL;
+}
+
+AvlNode* SortedSet::offsetNode(AvlNode* node, int64_t offset){
+    int64_t pos;
+    while(pos != offset){
+        if(pos < offset && pos + AvlTree::avl_cnt(node->right) >= offset){
+            node = node->right;
+            pos += AvlTree::avl_cnt(node->left) + 1;
+        }else 
+        if(pos > offset && pos - AvlTree::avl_cnt(node->left) <= offset){
+            node = node->left;
+            pos -= AvlTree::avl_cnt(node->right) + 1;
+        }
+        else{
+            AvlNode* parent = node->parent;
+            if(!parent)
+                return NULL;
+            if(parent->right == node)
+                pos -= AvlTree::avl_cnt(node->left) + 1;
+            else
+                pos += AvlTree::avl_cnt(node->right) + 1;
+            node = parent;
+        }
+    }
+    return node;
+}

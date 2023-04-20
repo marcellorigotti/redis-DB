@@ -18,7 +18,7 @@ public:
     bool del(uint32_t val, std::string name);
     bool avl_verify(AvlNode* node, AvlNode* parent = NULL);
     void printAvl();
-    uint32_t avl_cnt(AvlNode* node);
+    static uint32_t avl_cnt(AvlNode* node);
 
     AvlNode* root = NULL;
 private:
