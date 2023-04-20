@@ -180,13 +180,15 @@ static void get(const std::vector<std::string>& cmd, std::string& out){
     Node** res = database.get(cmd[1]);
     if(!res)
         return out_nil(out);
-    std::string res_val = (*res)->val;
-    assert(res_val.size() <= max_msg_size);
-    out_str(out, res_val);
+    //TODO update to support uint type and not string!
+    // std::string res_val = (*res)->val;
+    // assert(res_val.size() <= max_msg_size);
+    // out_str(out, res_val);
 }
 static void set(const std::vector<std::string>& cmd, std::string& out){
     msg("set");
-    database.insert(cmd[1], cmd[2]);
+    //TODO update to support uint type and not string!
+    //database.insert(cmd[1], cmd[2]);
     return out_nil(out);
 }
 static void del(const std::vector<std::string>& cmd, std::string& out){
