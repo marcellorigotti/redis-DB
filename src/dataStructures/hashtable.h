@@ -7,14 +7,14 @@ struct Node{
     Node* next = NULL;
     uint64_t hcode = 0;
     std::string key; //represents our name
-    std::string val; //represents our score TODO: change it to int/float
+    uint32_t val; //represents our score TODO: change it to int/float
 };
 
 class HashTable {
 public:
     HashTable(size_t n = 16);
 
-    void insert(std::string key, std::string val);
+    void insert(std::string key, uint32_t val);
     bool del(std::string key);
     Node** get(std::string key);
     bool has(std::string key);

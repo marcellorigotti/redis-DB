@@ -18,7 +18,7 @@ HashTable::HashTable (size_t n): mask(n-1) {
     size = 0;
 }
 
-void HashTable::insert(std::string key, std::string val){
+void HashTable::insert(std::string key, uint32_t val){
     size_t index = hash(key); //hash our key
     Node* tmp = new Node(); //create a new node to be added and fill it with key, val and hashval
     tmp->hcode = index;
