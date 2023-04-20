@@ -5,6 +5,7 @@
 AvlTree::AvlTree(uint32_t val, std::string name){
     root = new AvlNode;
     root->name = name;
+    root->val = val;
     root->depth = 1;
     root->cnt = 1;
     root->left = root->right = root->parent = NULL;
