@@ -25,7 +25,7 @@ uint32_t AvlTree::avl_depth(AvlNode* node){
     return node ? node->depth : 0;
 }
 
-static uint32_t AvlTree::avl_cnt(AvlNode* node){
+uint32_t AvlTree::avl_cnt(AvlNode* node){
     return node ? node->cnt : 0;
 }
 
