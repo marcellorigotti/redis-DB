@@ -1,4 +1,5 @@
 #include "sortedSet.h"
+#include <vector>
 
 SortedSet::SortedSet(){
     tree = new AvlTree();
@@ -29,14 +30,28 @@ void SortedSet::add(uint32_t score, std::string name){
     return;
 }
 
-void SortedSet::del(std::string name){
+bool SortedSet::del(std::string name){
     if(hmap->has(name)){
         uint32_t score = (*hmap->get(name))->val;
         tree->del(score, name);
         hmap->del(name);
+        return true;
     }
-    return;
+    return false;
 }
+
+bool SortedSet::has(std::string name){
+    return hmap->has(name);
+}
+
+Node** SortedSet::get(std::string name){
+    return hmap->get(name);
+}
+
+std::vector<std::string> SortedSet::keys(){
+    return hmap->keys();
+}
+
 
 AvlNode* SortedSet::query(uint32_t score, std::string name, int64_t offset){
     AvlNode* current = tree->root;

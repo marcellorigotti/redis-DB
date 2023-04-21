@@ -12,13 +12,14 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <unordered_map>
-#include "dataStructures/hashtable.h"
-#include "dataStructures/avlTree.h"
+// #include "dataStructures/hashtable.h"
+// #include "dataStructures/avlTree.h"
+#include "dataStructures/sortedSet.h"
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
 //our custom hashtable
-static HashTable database = HashTable();
+static SortedSet database = SortedSet();
 
 static void msg(const char *msg) {
     std::cout << msg << std::endl;
@@ -43,11 +44,14 @@ enum class SER: int{
     SER_ERR = 1,
     SER_STR = 2,
     SER_INT = 3,
-    SER_ARR = 4,
+    SER_DBL = 4,
+    SER_ARR = 5,
 };
 enum class Error{
     ERR_UNKNOWN = 1,
     ERR_2BIG = 2,
+    ERR_TYPE = 3,
+    ERR_ARG = 4,
 };
 
 struct Conn {
@@ -158,6 +162,11 @@ static void out_int(std::string &out, int64_t val) {
     out.append((char *)&val, 8);
 }
 
+static void out_dbl(std::string &out, double val) {
+    out.push_back(int(SER::SER_DBL));
+    out.append((char *)&val, 8);
+}
+
 static void out_err(std::string &out, Error code, const std::string &msg) {
     out.push_back(int(SER::SER_ERR));
     out.append((char *)&code, 4);
@@ -171,6 +180,11 @@ static void out_arr(std::string &out, uint32_t n) {
     out.append((char *)&n, 4);
 }
 
+static void out_update_arr(std::string &out, uint32_t n) {
+    assert(out[0] == char(SER::SER_ARR));
+    memcpy(&out[1], &n, 4);
+}
+
 static void get(const std::vector<std::string>& cmd, std::string& out){
     msg("get");
     if(!database.has(cmd[1])){
@@ -180,15 +194,13 @@ static void get(const std::vector<std::string>& cmd, std::string& out){
     Node** res = database.get(cmd[1]);
     if(!res)
         return out_nil(out);
-    //TODO update to support uint type and not string!
-    // std::string res_val = (*res)->val;
-    // assert(res_val.size() <= max_msg_size);
-    // out_str(out, res_val);
+    std::string res_val = std::to_string((*res)->val);
+    assert(res_val.size() <= max_msg_size);
+    out_str(out, res_val);
 }
 static void set(const std::vector<std::string>& cmd, std::string& out){
     msg("set");
-    //TODO update to support uint type and not string!
-    //database.insert(cmd[1], cmd[2]);
+    database.add(std::stoi(cmd[2]), cmd[1]);
     return out_nil(out);
 }
 static void del(const std::vector<std::string>& cmd, std::string& out){
@@ -331,6 +343,10 @@ static void handle_conn(Conn* conn){
 }
 
 int main(){
+    //TODO: modify AvlTree to be initialized with no nodes
+    //remember to modify the tests as well to match this
+    database.del("a");
+
     std::cout << "creating the server socket..." << std::endl;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1)
