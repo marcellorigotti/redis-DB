@@ -9,6 +9,7 @@ public:
     void add(uint32_t score, std::string name); //add or update an already existing name
     bool del(std::string name);
     bool has(std::string name);
+    uint32_t cnt();
     Node** get(std::string name);
     std::vector<std::string> keys();
 

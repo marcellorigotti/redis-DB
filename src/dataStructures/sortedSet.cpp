@@ -4,11 +4,13 @@
 SortedSet::SortedSet(){
     tree = new AvlTree();
     hmap = new HashTable();
+    hmap->insert("a", 0); //Default node for AvlTree, modify it to create an empty tree
 }
 
 SortedSet::SortedSet(uint32_t score, std::string name){
     tree = new AvlTree(score, name);
     hmap = new HashTable();
+    hmap->insert(name, score);
 }
 
 void SortedSet::update(uint32_t score, std::string name){
@@ -52,6 +54,10 @@ std::vector<std::string> SortedSet::keys(){
     return hmap->keys();
 }
 
+uint32_t SortedSet::cnt(){
+    return tree->root->cnt;
+}
+
 
 AvlNode* SortedSet::query(uint32_t score, std::string name, int64_t offset){
     AvlNode* current = tree->root;
@@ -71,7 +77,7 @@ AvlNode* SortedSet::query(uint32_t score, std::string name, int64_t offset){
 }
 
 AvlNode* SortedSet::offsetNode(AvlNode* node, int64_t offset){
-    int64_t pos;
+    int64_t pos = 0;
     while(pos != offset){
         if(pos < offset && pos + AvlTree::avl_cnt(node->right) >= offset){
             node = node->right;

@@ -34,26 +34,6 @@ enum class State : uint8_t{
     STATE_RES = 1, //send response
     STATE_END = 2, //terminate connection
 };
-enum class Rescode : int32_t{
-    RES_OK = 0,
-    RES_ERR = 1,
-    RES_NX = 2,
-};
-enum class SER: int{
-    SER_NIL = 0,
-    SER_ERR = 1,
-    SER_STR = 2,
-    SER_INT = 3,
-    SER_DBL = 4,
-    SER_ARR = 5,
-};
-enum class Error{
-    ERR_UNKNOWN = 1,
-    ERR_2BIG = 2,
-    ERR_TYPE = 3,
-    ERR_ARG = 4,
-};
-
 struct Conn {
     int fd = -1;
     State state = State::STATE_REQ; //default value
@@ -88,6 +68,28 @@ static int32_t accept_conn(std::unordered_map<int, Conn*> &fd2conn, int fd){
     fd2conn[connfd] = conn;
     return 0;
 }
+
+enum class Rescode : int32_t{
+    RES_OK = 0,
+    RES_ERR = 1,
+    RES_NX = 2,
+};
+enum class SER: int{
+    SER_NIL = 0,
+    SER_ERR = 1,
+    SER_STR = 2,
+    SER_INT = 3,
+    SER_DBL = 4,
+    SER_ARR = 5,
+};
+enum class Error{
+    ERR_UNKNOWN = 1,
+    ERR_2BIG = 2,
+    ERR_TYPE = 3,
+    ERR_ARG = 4,
+};
+
+
 static bool try_write(Conn* conn){
     msg("try write");  
     ssize_t len = 0;
@@ -181,7 +183,7 @@ static void out_arr(std::string &out, uint32_t n) {
 }
 
 static void out_update_arr(std::string &out, uint32_t n) {
-    assert(out[0] == char(SER::SER_ARR));
+    assert(out[0] == int(SER::SER_ARR));
     memcpy(&out[1], &n, 4);
 }
 
