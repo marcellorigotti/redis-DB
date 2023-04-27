@@ -14,7 +14,7 @@ void printNode(AvlNode* node){
     if(!node)
         return;
     printNode(node->left);
-    std::cout << node->val << " " << node->cnt << " " << node->depth << std::endl;
+    std::cout << node->val << " " << node->name << std::endl;
     printNode(node->right);
 }
 void AvlTree::printAvl(){
@@ -140,6 +140,10 @@ void AvlTree::add(uint32_t val, std::string name){
     AvlNode* new_node = new AvlNode;
     new_node->val = val;
     new_node->name = name;
+    if(!root){
+        root = new_node;
+        return;
+    }
 
     AvlNode* current = root;
     while (true)

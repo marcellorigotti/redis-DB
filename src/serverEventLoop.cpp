@@ -202,7 +202,7 @@ static void get(const std::vector<std::string>& cmd, std::string& out){
 }
 static void set(const std::vector<std::string>& cmd, std::string& out){
     msg("set");
-    database.add(std::stoi(cmd[2]), cmd[1]);
+    database.add((uint32_t)std::stoi(cmd[2]), cmd[1]);
     return out_nil(out);
 }
 static void del(const std::vector<std::string>& cmd, std::string& out){

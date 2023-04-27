@@ -1,5 +1,7 @@
 #include "sortedSet.h"
 #include <vector>
+#include <typeinfo>
+
 
 SortedSet::SortedSet(){
     tree = new AvlTree();
@@ -29,6 +31,7 @@ void SortedSet::add(uint32_t score, std::string name){
     }
     tree->add(score, name);
     hmap->insert(name, score);
+
     return;
 }
 

@@ -47,7 +47,7 @@ int main(){
     std::multiset<std::pair<uint32_t, std::string>> ref;
     ref.emplace(0, "a"); //to match the item creted with the constructor (creates root node with val = 0 and name = "a")
 
-    std::cout << "First insertions" << std::endl;
+    std::cout << "Inserting..." << std::endl;
     //sequential insertion
     for (uint32_t i = 0; i < 10; i ++) {
         std::string tmp = randStr(1);
@@ -58,8 +58,8 @@ int main(){
             abort();
         }
     }
+    std::cout << tree.root->cnt << std::endl;
 
-    std::cout << "Second insertions" << std::endl;
     // random insertion
     for (uint32_t i = 0; i < 1000; i++) {
         uint32_t val = (uint32_t)rand() % 100;
@@ -72,9 +72,11 @@ int main(){
         }
     }
 
-    std::cout << "First deletion" << std::endl;
+    std::cout << tree.root->cnt << std::endl;
+
+    std::cout << "Deleting..." << std::endl;
     // random deletion
-    for (uint32_t i = 0; i < 500; i++) {
+    for (uint32_t i = 0; i < 1000; i++) {
         uint32_t val = (uint32_t)rand() % 100;
         std::string tmp = randStr(1);
         std::pair<uint32_t, std::string> pairTmp {val, tmp};
@@ -90,6 +92,8 @@ int main(){
             abort();
         }
     }
+    std::cout << tree.root->cnt << std::endl;
+    tree.printAvl();
 
     std::cout<< "Test completed succesfully" << std::endl;
 }
