@@ -220,6 +220,10 @@ static void keys(const std::vector<std::string>& cmd, std::string& out){
         out_str(out, key);
     }
 }
+static void query(const std::vector<std::string>& cmd, std::string& out){
+    msg("query");
+    //TODO implement query server side to return the offset node!
+}
 
 //computes the request parsing the commands and elaborating them
 static void compute_req(std::vector<std::string>& cmd, std::string& out){
@@ -232,7 +236,10 @@ static void compute_req(std::vector<std::string>& cmd, std::string& out){
         del(cmd, out);
     }else if(cmd.size() == 3 && cmd[0].compare("set") == 0){
         set(cmd, out);
-    }else{
+    }else if(cmd.size() == 5 && cmd[0].compare("query") == 0){
+        query(cmd, out);
+    }
+    else{
         //cmd not recognized
         out_err(out, Error::ERR_UNKNOWN, "Unknown command");
     }
