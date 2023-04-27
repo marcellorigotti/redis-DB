@@ -32,8 +32,17 @@ int main(){
         }
         else if(res->val != i)
             std::cout << "FAILED" << std::endl;
-        else 
-            std::cout << res->val << "  " << res->name << std::endl;
+        
+        for(int j=0; j<100; j++){
+            int offset = j - i;
+            AvlNode* res2 = set.query(res->val, res->name, offset);
+            if(!res2){
+                std::cout << "Node not present2" << std::endl;
+                continue;
+            }
+            else if(res2->val != j)
+                std::cout << "FAILED2" << std::endl;
+        }
     }
 
     std::cout << "Test completed succesfully!" << std::endl;
