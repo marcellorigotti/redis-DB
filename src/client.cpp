@@ -80,6 +80,7 @@ static int32_t on_response(const uint8_t* data, size_t size){
         return -1;
     }
 
+    //TODO impletent SER_DBL to decode double values
     switch (SER(data[0])){
         case SER::SER_NIL:
             std::cout << "(nil)" << std::endl;

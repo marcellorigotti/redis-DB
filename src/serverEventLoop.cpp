@@ -222,21 +222,34 @@ static void keys(const std::vector<std::string>& cmd, std::string& out){
 }
 static void query(const std::vector<std::string>& cmd, std::string& out){
     msg("query");
-    //TODO implement query server side to return the offset node!
+    AvlNode* res = database.query(std::stoi(cmd[2]), cmd[1], std::stoi(cmd[3]));
+    if(!res)
+        return out_nil(out); //offset node is non existing
+    out_arr(out, 2);
+    out_str(out, res->name);
+    out_int(out, res->val);
 }
 
 //computes the request parsing the commands and elaborating them
 static void compute_req(std::vector<std::string>& cmd, std::string& out){
+    //TODO handle errors, for example when a str in passed instead of a number
+    //what should the server do? crash? no, return an error!
+    //implement error handling!
     msg("compute req");
     if(cmd.size() == 1 && cmd[0].compare("keys") == 0){
+        //keys
         keys(cmd, out);
     }else if(cmd.size() == 2 && cmd[0].compare("get") == 0){
+        //get name
         get(cmd, out);
     }else if(cmd.size() == 2 && cmd[0].compare("del") == 0){
+        //del name
         del(cmd, out);
     }else if(cmd.size() == 3 && cmd[0].compare("set") == 0){
+        //set name score
         set(cmd, out);
-    }else if(cmd.size() == 5 && cmd[0].compare("query") == 0){
+    }else if(cmd.size() == 4 && cmd[0].compare("query") == 0){
+        //query score name offset
         query(cmd, out);
     }
     else{
