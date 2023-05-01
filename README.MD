@@ -9,6 +9,8 @@ This project focuses on the creation of a redix like database (a very basic vers
 4) implemented get, set, del operations 
 5) implemented custom hashtable for our database (TODO: implement resizing when load factor too high)
 6) implemented AvlTree and test for it, this will be used to build sorted set next
+7) implemented sortedSet and test for it
+8) used sortedSet in our server
     
 To compile and run:
 - cd ./build
@@ -28,7 +30,8 @@ response code:
 - SER_ERR = 1
 - SER_STR = 2
 - SER_INT = 3 (1 = succefull operation, 0 = operation not done, it can be caused because we are trying to delete an element that is not present)
-- SER_ARR = 4
+- SER_DBL = 4,
+- SER_ARR = 5,
 
 
 ## PROTOCOL IMPLEMENTATION
