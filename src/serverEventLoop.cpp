@@ -15,19 +15,10 @@
 // #include "dataStructures/hashtable.h"
 // #include "dataStructures/avlTree.h"
 #include "dataStructures/sortedSet.h"
+#include "dataStructures/list.h"
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
-//our custom hashtable
-static SortedSet database = SortedSet();
-
-static void msg(const char *msg) {
-    std::cout << msg << std::endl;
-}
-static void die(const char *msg) {
-    std::cout << msg << std::endl;
-    abort();
-}
 
 enum class State : uint8_t{
     STATE_REQ = 0, //read request
@@ -44,7 +35,24 @@ struct Conn {
     size_t wbuf_size = 0;
     uint8_t wbuf[4 + max_msg_size];
     size_t wbuf_sent = 0;
+    
+    uint64_t idle_start = 0;
+    DList idle_list;
 };
+//our custom hashtable
+static SortedSet database = SortedSet();
+//map of all the client connections
+std::unordered_map<int, Conn*> fd2conn;
+//list of timers
+DList idle_list;
+
+static void msg(const char *msg) {
+    std::cout << msg << std::endl;
+}
+static void die(const char *msg) {
+    std::cout << msg << std::endl;
+    abort();
+}
 
 static int32_t accept_conn(std::unordered_map<int, Conn*> &fd2conn, int fd){
     msg("accept conn");
@@ -366,8 +374,9 @@ static void handle_conn(Conn* conn){
 
 int main(){
     //TODO: modify AvlTree to be initialized with no nodes
-    //remember to modify the tests as well to match this
+    //TODO: remember to modify the tests as well to match this
     database.del("a");
+    dlist_init(&idle_list);
 
     std::cout << "creating the server socket..." << std::endl;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -395,9 +404,7 @@ int main(){
     if (listen(fd, SOMAXCONN) == -1) {
         die("listen(): Can't listen");
     }
-
-    //map of all the client connections
-    std::unordered_map<int, Conn*> fd2conn; 
+ 
     //set the listening mode to non blocking
     fcntl(fd, F_SETFL, O_NONBLOCK);
     //vector of all the events
