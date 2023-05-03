@@ -44,7 +44,11 @@ static SortedSet database = SortedSet();
 //map of all the client connections
 std::unordered_map<int, Conn*> fd2conn;
 //list of timers
-DList idle_list;
+DList idle_list; 
+
+#define container_of(ptr, type, member) ({                  \
+    const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+    (type *)( (char *)__mptr - offsetof(type, member) );}
 
 static void msg(const char *msg) {
     std::cout << msg << std::endl;
