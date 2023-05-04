@@ -19,6 +19,7 @@
 
 const size_t max_msg_size = 4096; 
 const size_t max_args = 1024;
+const uint64_t k_idle_timeout_ms = 5 * 1000;
 
 enum class State : uint8_t{
     STATE_REQ = 0, //read request
